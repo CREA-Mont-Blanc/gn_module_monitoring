@@ -11,10 +11,14 @@ Nécessite GeoNature version 2.12.0 (ou plus)
 
 * Compatibilité avec GeoNature 2.12 (Passage à la version 15 d'Angular et révision des permissions)
 * Centralisation de la configuration du module dans le dossier de configuration de GeoNature
+  * Pour le fichier de ``<geonature>/config/monitorings_config.toml`` (facultatif car non utilisé)
+  * et le dossier de configuration des sous-modules ``<geonature>/config/monitorings``
 * Permissions : utilisation du décorateur de route classique ``check_cruved_scope``
 * Amélioration de l'affichage des images sur la page listant les sous-modules (#214)
 * Remplacement du composant `datalist` par le composant `dataset` pour le champs de selection du JDD de la visite, dans la configuration générique des sous-modules
-* Les assets des sous-modules (images, exports) sont déplacés du dossier ``static`` au dossier ``media`` de GeoNature
+* Utilisation de la gestion dynamique de la config de GeoNature
+* Les dossier de configuration des sous-modules sont déplacés du dossier ``<gn_module_monitoring>/config/monitorings`` au dossier ``media/monitorings`` de GeoNature
+* Installation des sous-modules en deux temps
 
 **Corrections**
 
@@ -35,14 +39,29 @@ Nécessite GeoNature version 2.12.0 (ou plus)
   },
 
 
-* Pour passer les assets des sous-moduledans le dossier `media` de GeoNature :
+* Veuillez déplacer les configurations des sous-modules déjà existants depuis le dossier ``<gn_module_monitoring>/config/monitoring`` vers le dossier ``media`` de geonature:
+
+
+::
+   cp -R <gn_module_monitoring>/config/monitoring <geonature>/backend/media/monitorings
+   rm -R <geonature>/backend/media/monitorings/generic
+
+Adapter cette commande si le repertoire ``medias`` de geonature est différent de l'exemple ci-dessus.
+Attention aux `s` à la fin de monitoring (le premier sans le deuxième avec).
+
+* L'installation des sous-modules se fait désormais en deux temps
+
+    * Copie du repertoire de configuration
+        * On pourra faire des lien symbolique pour des besoins de dev
+    * Installation du sous-module avec la commande dédiée
 
 ::
 
-  cp -R <geonature>/backend/static/external_assets <geonature>/backend/media/.
+  cp <chemin vers le sous-module> <geonature>/backend/media/monitoring/<module_code>
+  geonature monitorings install <module_code>
 
 
-Adapter cette commande si les repertoires ``static`` et ``medias`` sont différents de l'exemple ci-dessus.
+
 
 0.4.1 (2023-02-05)
 ------------------
