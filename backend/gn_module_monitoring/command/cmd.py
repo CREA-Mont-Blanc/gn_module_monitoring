@@ -14,7 +14,7 @@ from geonature.core.gn_commons.models import TModules
 
 from ..monitoring.models import TMonitoringModules
 from ..config.repositories import get_config
-from ..config.utils import json_from_file, monitoring_module_config_path, monitoring_centralized_config_dir
+from ..config.utils import json_from_file, monitoring_module_config_path
 from ..modules.repositories import get_module, get_simple_module
 
 from .utils import (
@@ -22,6 +22,8 @@ from .utils import (
     insert_permission_object,
     remove_monitoring_module,
     add_nomenclature,
+    available_modules,
+    installed_modules
 )
 
 
@@ -67,7 +69,12 @@ def cmd_install_monitoring_module(module_code):
     module_config_dir_path = monitoring_module_config_path(module_code)
 
     if not module_config_dir_path.is_dir():
-        click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path()}", fg="red")
+        available_modules_txt = ", ".join(sorted(available_modules()))
+        installed_modules_txt = ", ".join(sorted(installed_modules()))
+        click.secho(f"Le module {module_code} n'est pas présent dans le dossier {module_config_dir_path}", fg="red")
+        click.secho(f'Modules disponibles : {available_modules_txt}\n')
+        click.secho(f"Modules installés : {installed_modules_txt}\n")
+        return
 
     module_monitoring = get_simple_module("module_code", "MONITORINGS")
 
