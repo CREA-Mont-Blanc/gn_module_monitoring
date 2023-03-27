@@ -18,7 +18,7 @@ MONITORINGS_CONFIG_DIR = MONITORINGS_DIR / 'config/monitoring'
 
 def monitoring_media_dir():
     # return DEFAULT_CONFIG_FILE.parent / 'monitorings'
-    return BACKEND_DIR / current_app.config['MEDIA_FOLDER'] / 'monitorings/'
+    return Path(current_app.config['MEDIA_FOLDER']) / 'monitorings/'
 
 def monitoring_module_config_path(module_code):
     if module_code == 'generic':
