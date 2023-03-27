@@ -110,7 +110,7 @@ Copier le dossier du sous module dans le dossier ``media`` de geonature
 
 ::
 
-  cp -R  <dossier du sous module> <path_to_geonature>/backend/monitorings/<module_code>
+  cp -R  <dossier du sous module> <path_to_geonature>/backend/media/monitorings/<module_code>
 
 
 Si l'on souhaite développer un sous-module il peut parfois être plus pratique de faire un lien symbolique
