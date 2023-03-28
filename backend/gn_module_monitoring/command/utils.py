@@ -13,7 +13,7 @@ from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from ..config.utils import (
     json_from_file,
     monitoring_module_config_path,
-    monitoring_media_dir
+    SUB_MODULE_CONFIG_DIR
 )
 
 from ..modules.repositories import get_module, get_source_by_code, get_modules
@@ -254,5 +254,5 @@ def available_modules():
         renvoie la liste des modules disponibles non encore installés
     '''
     installed_modules_ = installed_modules()
-    for root, dirs, files in os.walk(monitoring_media_dir(), followlinks=True):
+    for root, dirs, files in os.walk(SUB_MODULE_CONFIG_DIR, followlinks=True):
         return [ str(d) for d in dirs if d not in installed_modules_ ]

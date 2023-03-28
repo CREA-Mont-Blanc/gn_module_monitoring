@@ -11,20 +11,14 @@ from geonature.utils.env import DB, DEFAULT_CONFIG_FILE, BACKEND_DIR
 
 from ..monitoring.models import TMonitoringModules
 
-cur_dir = Path(os.path.abspath(__file__)).parent
-MONITORINGS_DIR = cur_dir.parent.parent.parent
-MONITORINGS_FRONTEND_DIR = MONITORINGS_DIR / 'frontend'
-MONITORINGS_CONFIG_DIR = MONITORINGS_DIR / 'config/monitoring'
-
-def monitoring_media_dir():
-    # return DEFAULT_CONFIG_FILE.parent / 'monitorings'
-    return Path(current_app.config['MEDIA_FOLDER']) / 'monitorings/'
+GENERIC_CONFIG_DIR = Path(os.path.abspath(__file__)).parent / 'generic'
+SUB_MODULE_CONFIG_DIR = Path(current_app.config['MEDIA_FOLDER']) / 'monitorings/'
 
 def monitoring_module_config_path(module_code):
     if module_code == 'generic':
-        return MONITORINGS_CONFIG_DIR / module_code
+        return GENERIC_CONFIG_DIR
 
-    return monitoring_media_dir() / module_code
+    return SUB_MODULE_CONFIG_DIR / module_code
 
 def get_monitoring_module(module_code):
     '''
