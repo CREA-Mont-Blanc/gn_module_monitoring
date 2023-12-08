@@ -3,16 +3,13 @@
         site, visit, observation, ...
 """
 
-
-from pathlib import Path
-from werkzeug.exceptions import NotFound
-from flask import request, send_from_directory, url_for, g, current_app
+from flask import request, url_for, g, current_app
 import datetime as dt
 
 from sqlalchemy.orm import joinedload
 
 from utils_flask_sqla.response import json_resp, json_resp_accept_empty_list
-from utils_flask_sqla.response import to_csv_resp, to_json_resp
+from utils_flask_sqla.response import to_csv_resp
 from utils_flask_sqla_geo.generic import GenericTableGeo
 from utils_flask_sqla.generic import serializeQuery
 
@@ -21,9 +18,9 @@ from ..blueprint import blueprint
 
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.core.gn_commons.models.base import TModules
-from geonature.core.gn_permissions.models import TObjects, Permission
+from geonature.core.gn_permissions.models import TObjects
 
-from geonature.utils.env import DB, ROOT_DIR
+from geonature.utils.env import DB
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring import MODULE_CODE
@@ -31,6 +28,9 @@ from ..monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @blueprint.url_value_preprocessor
@@ -79,9 +79,9 @@ def set_current_module(endpoint, values):
     defaults={"module_code": None, "object_type": "module", "id": None},
     methods=["GET"],
 )
-@check_cruved_scope("R")
+@check_cruved_scope("R", get_scope=True)
 @json_resp
-def get_monitoring_object_api(module_code, object_type, id):
+def get_monitoring_object_api(scope, module_code, object_type, id):
     """
     renvoie un object, à partir de type de l'object et de son id
 
@@ -101,14 +101,15 @@ def get_monitoring_object_api(module_code, object_type, id):
     get_config(module_code, force=True)
 
     depth = to_int(request.args.get("depth", 1))
-
-    return (
-        monitoring_definitions.monitoring_object_instance(module_code, object_type, id).get(
-            depth=depth
-        )
-        # .get(value=value, field_name = field_name)
-        .serialize(depth)
+    object_instance = monitoring_definitions.monitoring_object_instance(
+        module_code, object_type, id
     )
+    logger.info(type(object_instance))
+    return object_instance.get(
+        user=g.current_user,
+        scope=scope,
+        depth=depth,
+    ).serialize(depth)
 
 
 def create_or_update_object_api(module_code, object_type, id):
