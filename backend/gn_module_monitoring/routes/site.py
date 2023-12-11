@@ -56,7 +56,7 @@ def get_types_site():
         params=params, default_sort="id_nomenclature_type_site", default_direction="desc"
     )
 
-    query = filter_params(query=BibTypeSite.query, params=params)
+    query = filter_params(BibTypeSite, query=BibTypeSite.query, params=params)
     query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
 
     return paginate(
@@ -116,11 +116,11 @@ def get_sites(object_type):
         params=params, default_sort="id_base_site", default_direction="desc"
     )
 
-    query = TMonitoringSites.query
+    query = db.select(TMonitoringSites)
     query = filter_according_to_column_type_for_site(query, params)
     query = sort_according_to_column_type_for_site(query, sort_label, sort_dir)
 
-    query_allowed = query.filter_by_readable(object_code=object_code)
+    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
     return paginate_scope(
         query=query_allowed,
         schema=MonitoringSitesSchema,
@@ -159,17 +159,15 @@ def get_all_site_geometries(object_type):
     object_code = "MONITORINGS_SITES"
     params = MultiDict(request.args)
     query = TMonitoringSites.query
-    query_allowed = query.filter_by_readable(object_code=object_code)
-    subquery = (
-        query_allowed.with_entities(
-            TMonitoringSites.id_base_site,
-            TMonitoringSites.base_site_name,
-            TMonitoringSites.geom,
-            TMonitoringSites.id_sites_group,
-        )
-        .filter_by_params(params)
-        .subquery()
+    query_allowed = TMonitoringSites.filter_by_readable(query=query, object_code=object_code)
+    query_allowed.with_entities(
+        TMonitoringSites.id_base_site,
+        TMonitoringSites.base_site_name,
+        TMonitoringSites.geom,
+        TMonitoringSites.id_sites_group,
     )
+    query_allowed = TMonitoringSites.filter_by_params(query=query_allowed, params=params)
+    subquery = query_allowed.subquery()
 
     result = geojson_query(subquery)
 

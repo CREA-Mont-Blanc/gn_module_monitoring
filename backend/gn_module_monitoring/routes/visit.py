@@ -35,13 +35,13 @@ def get_visits(object_type):
     query = query.options(joinedload(TMonitoringVisits.module)).filter(
         TMonitoringVisits.id_module.in_(ids_modules_allowed)
     )
-    query = filter_params(query=query, params=params)
-    query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
+    query = filter_params(TMonitoringVisits, query=query, params=params)
+    query = sort(model=TMonitoringVisits, query=query, sort=sort_label, sort_dir=sort_dir)
     query_allowed = query
     for module in modules:
         if module["id_module"] in ids_modules_allowed:
-            query_allowed = query_allowed.filter_by_readable(
-                module_code=module["module_code"], object_code=OBJECT_CODE
+            query_allowed = TMonitoringVisits.filter_by_readable(
+                query=query_allowed, module_code=module["module_code"], object_code=OBJECT_CODE
             )
     return paginate_scope(
         query=query_allowed,

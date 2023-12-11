@@ -15,6 +15,8 @@ from gn_module_monitoring.monitoring.models import (
     TModules,
     TNomenclatures,
 )
+
+
 from geonature.core.gn_permissions.models import TObjects, PermObject, PermissionAvailable
 from geonature.utils.errors import GeoNatureError
 from marshmallow import Schema
@@ -23,7 +25,6 @@ from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Query, load_only, joinedload
 from werkzeug.datastructures import MultiDict
 
-from gn_module_monitoring.monitoring.queries import Query as MonitoringQuery
 from gn_module_monitoring.monitoring.schemas import paginate_schema
 
 
@@ -36,7 +37,7 @@ def get_sort(params: MultiDict, default_sort: str, default_direction) -> Tuple[s
 
 
 def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
-    result = query.paginate(page=page, error_out=False, per_page=limit)
+    result = DB.paginate(query, page=page, per_page=limit, error_out=False)
     pagination_schema = paginate_schema(schema)
     data = pagination_schema().dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
@@ -47,12 +48,14 @@ def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
 def paginate_scope(
     query: Query, schema: Schema, limit: int, page: int, object_code=None
 ) -> Response:
-    result = query.paginate(page=page, error_out=False, per_page=limit)
+    result = DB.paginate(query, page=page, per_page=limit, error_out=False)
+
     pagination_schema = paginate_schema(schema)
+
     datas_allowed = pagination_schema().dump(
         dict(items=result.items, count=result.total, limit=limit, page=page)
     )
-    cruved_item_dict = get_objet_with_permission_boolean(result.items, object_code=object_code)
+    cruved_item_dict = get_objet_with_permission_boolean(result, object_code=object_code)
     for cruved_item in cruved_item_dict:
         for i, data in enumerate(datas_allowed["items"]):
             if data[data["pk"]] == cruved_item[data["pk"]]:
@@ -60,15 +63,15 @@ def paginate_scope(
     return jsonify(datas_allowed)
 
 
-def filter_params(query: MonitoringQuery, params: MultiDict) -> MonitoringQuery:
+def filter_params(model, query: Query, params: MultiDict) -> Query:
     if len(params) != 0:
-        query = query.filter_by_params(params)
+        query = model.filter_by_params(query=query, params=params)
     return query
 
 
-def sort(query: MonitoringQuery, sort: str, sort_dir: str) -> MonitoringQuery:
+def sort(model, query: Query, sort: str, sort_dir: str) -> Query:
     if sort_dir in ["desc", "asc"]:
-        query = query.sort(label=sort, direction=sort_dir)
+        query = model.sort(query=query, label=sort, direction=sort_dir)
     return query
 
 
@@ -154,7 +157,7 @@ def filter_according_to_column_type_for_site(query, params):
             User.id_role == TMonitoringSites.id_inventor,
         ).filter(User.nom_complet.ilike(f"%{params_inventor}%"))
     if len(params) != 0:
-        query = filter_params(query=query, params=params)
+        query = filter_params(TMonitoringSites, query=query, params=params)
 
     return query
 
@@ -171,7 +174,7 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
         else:
             query = query.order_by(User.nom_complet.desc())
     else:
-        query = sort(query=query, sort=sort_label, sort_dir=sort_dir)
+        query = sort(TMonitoringSites, query=query, sort=sort_label, sort_dir=sort_dir)
     return query
 
 
@@ -210,20 +213,21 @@ def get_objet_with_permission_boolean(
     objects_out = []
     for object in objects:
         if module_code:
-            cruved_object = object.query._get_cruved_scope(
+            cruved_object = object._get_cruved_scope(
                 module_code=module_code, object_code=object_code
             )
         elif hasattr(object, "module"):
-            cruved_object = object.query._get_cruved_scope(
+            cruved_object = object._get_cruved_scope(
                 module_code=object.module.module_code, object_code=object_code
             )
         elif hasattr(object, "module_code"):
-            cruved_object = object.query._get_cruved_scope(
+            cruved_object = object._get_cruved_scope(
                 module_code=object.module_code, object_code=object_code
             )
         else:
-            cruved_object = object.query._get_cruved_scope(object_code=object_code)
+            cruved_object = object._get_cruved_scope(object_code=object_code)
         object_out = object.as_dict(depth=depth)
+
         if hasattr(object, "module_code"):
             object_out["cruved"] = object.get_permission_by_action(
                 module_code=object.module_code, object_code=object_code
