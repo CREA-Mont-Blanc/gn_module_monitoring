@@ -27,7 +27,7 @@ from geonature.utils.env import DB, ROOT_DIR
 import geonature.utils.filemanager as fm
 
 from gn_module_monitoring import MODULE_CODE
-from ..monitoring.definitions import monitoring_definitions
+from gn_module_monitoring.monitoring.definitions import monitoring_definitions
 from ..modules.repositories import get_module
 from ..utils.utils import to_int
 from ..config.repositories import get_config, get_config_with_specific
