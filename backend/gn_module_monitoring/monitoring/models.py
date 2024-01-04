@@ -57,7 +57,6 @@ class GenericModel:
     @classmethod
     def get_id_name(cls) -> None:
         pk_string = class_mapper(cls).primary_key[0].name
-        # print('======= ==>', pk_string)
         if hasattr(cls, "id_g") == False:
             pk_value = getattr(cls, pk_string)
             setattr(cls, "id_g", pk_value)

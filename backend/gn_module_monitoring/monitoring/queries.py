@@ -1,5 +1,5 @@
 from flask import g
-from sqlalchemy import Unicode, and_, Unicode, func, or_, false
+from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true
 from sqlalchemy.orm import Query, load_only, joinedload
 from sqlalchemy.types import DateTime
 from werkzeug.datastructures import MultiDict
@@ -12,8 +12,9 @@ import gn_module_monitoring.monitoring.models as Models
 class GnMonitoringGenericFilter:
     @classmethod
     def filter_by_params(cls, query: Query, params: MultiDict = None, **kwargs):
-        print(query, params)
-        and_list = []
+        and_list = [
+            true(),
+        ]
         for key, value in params.items():
             column = getattr(cls, key)
             if isinstance(column.type, Unicode):

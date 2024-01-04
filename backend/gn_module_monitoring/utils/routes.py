@@ -22,7 +22,8 @@ from geonature.utils.errors import GeoNatureError
 from marshmallow import Schema
 from sqlalchemy import cast, func, text
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import Query, load_only, joinedload
+from sqlalchemy.orm import load_only, joinedload
+from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.monitoring.schemas import paginate_schema
@@ -36,7 +37,7 @@ def get_sort(params: MultiDict, default_sort: str, default_direction) -> Tuple[s
     return params.pop("sort", default_sort), params.pop("sort_dir", default_direction)
 
 
-def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
+def paginate(query: Select, schema: Schema, limit: int, page: int) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
     pagination_schema = paginate_schema(schema)
     data = pagination_schema().dump(
@@ -46,7 +47,7 @@ def paginate(query: Query, schema: Schema, limit: int, page: int) -> Response:
 
 
 def paginate_scope(
-    query: Query, schema: Schema, limit: int, page: int, object_code=None
+    query: Select, schema: Schema, limit: int, page: int, object_code=None
 ) -> Response:
     result = DB.paginate(query, page=page, per_page=limit, error_out=False)
 
@@ -63,13 +64,13 @@ def paginate_scope(
     return jsonify(datas_allowed)
 
 
-def filter_params(model, query: Query, params: MultiDict) -> Query:
+def filter_params(model, query: Select, params: MultiDict) -> Select:
     if len(params) != 0:
         query = model.filter_by_params(query=query, params=params)
     return query
 
 
-def sort(model, query: Query, sort: str, sort_dir: str) -> Query:
+def sort(model, query: Select, sort: str, sort_dir: str) -> Select:
     if sort_dir in ["desc", "asc"]:
         query = model.sort(query=query, label=sort, direction=sort_dir)
     return query
