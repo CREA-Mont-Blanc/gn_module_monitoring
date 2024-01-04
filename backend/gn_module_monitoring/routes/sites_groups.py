@@ -71,16 +71,15 @@ def get_sites_groups(object_type: str):
     "R", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
-    sites_group = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
+    sites_group = db.get_or_404(TMonitoringSitesGroups, id_sites_group)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot read site group {sites_group.id_sites_group}"
         )
     schema = MonitoringSitesGroupsSchema()
-    result = TMonitoringSitesGroups.query.get_or_404(id_sites_group)
-    response = schema.dump(result)
+    response = schema.dump(sites_group)
     response["cruved"] = get_objet_with_permission_boolean(
-        [result], object_code="MONITORINGS_GRP_SITES"
+        [sites_group], object_code="MONITORINGS_GRP_SITES"
     )[0]["cruved"]
     response["geometry"] = (
         json.loads(response["geometry"])
@@ -142,7 +141,7 @@ def get_sites_group_geometries(object_type: str):
 def patch(scope, _id: int, object_type: str):
     # ###############################""
     # FROM route/monitorings
-    sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
+    sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot update site group {sites_group.id_sites_group}"
@@ -160,12 +159,12 @@ def patch(scope, _id: int, object_type: str):
     "D", get_scope=True, module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES"
 )
 def delete(scope, _id: int, object_type: str):
-    sites_group = TMonitoringSitesGroups.query.get_or_404(_id)
+    sites_group = db.get_or_404(TMonitoringSitesGroups, _id)
     if not sites_group.has_instance_permission(scope=scope):
         raise Forbidden(
             f"User {g.current_user} cannot delete site group {sites_group.id_sites_group}"
         )
-    TMonitoringSitesGroups.query.filter_by(id_sites_group=_id).delete()
+    db.session.delete(sites_group)
     db.session.commit()
     return {"success": "Item is successfully deleted"}, 200
 

@@ -10,6 +10,7 @@
 from flask import request
 from sqlalchemy import and_, inspect, cast
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.sql.expression import select
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
 from pypnnomenclature.repository import get_nomenclature_list
@@ -93,7 +94,9 @@ def get_init_data(module_code):
 
     # user
     if data.get("user"):
-        res_user = DB.session.query(VUserslistForallMenu).filter_by(id_menu=data.get("user")).all()
+        res_user = DB.session.scalars(
+            select(VUserslistForallMenu).where(VUserslistForallMenu.id_menu == data.get("user"))
+        ).all()
         out["user"] = [user.as_dict() for user in res_user]
 
     # sites_group
@@ -104,7 +107,9 @@ def get_init_data(module_code):
 
     # dataset (cruved ??)
     res_dataset = (
-        DB.session.query(TDatasets).filter(TDatasets.modules.any(module_code=module_code)).all()
+        DB.session.scalars(select(TDatasets).where(TDatasets.modules.any(module_code=module_code)))
+        .unique()
+        .all()
     )
 
     out["dataset"] = [dataset.as_dict() for dataset in res_dataset]

@@ -1,7 +1,9 @@
 from flask import request, current_app
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.expression import select
 from werkzeug.datastructures import MultiDict
 
+from geonature.utils.env import db
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.monitoring.models import TMonitoringVisits
 from gn_module_monitoring.monitoring.schemas import MonitoringVisitsSchema
@@ -31,7 +33,7 @@ def get_visits(object_type):
 
     modules = get_objet_with_permission_boolean(modules_object, object_code=OBJECT_CODE)
     ids_modules_allowed = [module["id_module"] for module in modules if module["cruved"]["R"]]
-    query = TMonitoringVisits.query
+    query = select(TMonitoringVisits)
     query = query.options(joinedload(TMonitoringVisits.module)).filter(
         TMonitoringVisits.id_module.in_(ids_modules_allowed)
     )
