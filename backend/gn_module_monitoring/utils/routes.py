@@ -23,7 +23,7 @@ from marshmallow import Schema
 from sqlalchemy import cast, func, text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import load_only, joinedload
-from sqlalchemy.sql.expression import Select
+from sqlalchemy.sql.expression import Select, select
 from werkzeug.datastructures import MultiDict
 
 from gn_module_monitoring.monitoring.schemas import paginate_schema
@@ -95,7 +95,8 @@ def geojson_query(subquery) -> bytes:
 
 def get_sites_groups_from_module_id(module_id: int):
     query = (
-        TMonitoringSitesGroups.query.options(
+        select(TMonitoringSitesGroups)
+        .options(
             # Load(TMonitoringSitesGroups).raiseload("*"),
             load_only(TMonitoringSitesGroups.id_sites_group)
         )
@@ -113,34 +114,36 @@ def get_sites_groups_from_module_id(module_id: int):
             cor_module_type.c.id_type_site == BibTypeSite.id_nomenclature_type_site,
         )
         .join(TModules, TModules.id_module == cor_module_type.c.id_module)
-        .filter(TModules.id_module == module_id)
+        .where(TModules.id_module == module_id)
     )
-
-    return query.all()
+    return DB.session.scalars(query).all()
 
 
 def query_all_types_site_from_site_id(id_site: int):
     query = (
-        BibTypeSite.query.join(
+        select(BibTypeSite)
+        .join(
             cor_type_site,
             BibTypeSite.id_nomenclature_type_site == cor_type_site.c.id_type_site,
         )
         .join(TBaseSites, cor_type_site.c.id_base_site == TBaseSites.id_base_site)
-        .filter(cor_type_site.c.id_base_site == id_site)
+        .where(cor_type_site.c.id_base_site == id_site)
     )
-    return query.all()
+
+    return DB.session.scalars(query).unique().all()
 
 
 def query_all_types_site_from_module_id(id_module: int):
     query = (
-        BibTypeSite.query.join(
+        select(BibTypeSite)
+        .join(
             cor_module_type,
             BibTypeSite.id_nomenclature_type_site == cor_module_type.c.id_type_site,
         )
         .join(TModules, cor_module_type.c.id_module == TModules.id_module)
-        .filter(cor_module_type.c.id_module == id_module)
+        .where(cor_module_type.c.id_module == id_module)
     )
-    return query.all()
+    return DB.session.scalars(query).unique().all()
 
 
 def filter_according_to_column_type_for_site(query, params):
@@ -149,14 +152,14 @@ def filter_according_to_column_type_for_site(query, params):
         query = (
             query.join(TMonitoringSites.types_site)
             .join(BibTypeSite.nomenclature)
-            .filter(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
+            .where(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
         )
     elif "id_inventor" in params:
         params_inventor = params.pop("id_inventor")
         query = query.join(
             User,
             User.id_role == TMonitoringSites.id_inventor,
-        ).filter(User.nom_complet.ilike(f"%{params_inventor}%"))
+        ).where(User.nom_complet.ilike(f"%{params_inventor}%"))
     if len(params) != 0:
         query = filter_params(TMonitoringSites, query=query, params=params)
 
@@ -186,8 +189,8 @@ def get_object_list_monitorings():
     :return:
     """
     try:
-        object_list_monitorings = (
-            DB.session.query(
+        object_list_monitorings = DB.session.execute(
+            select(
                 PermObject.code_object,
             )
             .join(PermissionAvailable, PermissionAvailable.id_object == PermObject.id_object)
@@ -199,8 +202,7 @@ def get_object_list_monitorings():
                 ),
             )
             .group_by(PermObject.code_object)
-            .all()
-        )
+        ).all()
         return object_list_monitorings
     except Exception as e:
         raise GeoNatureError("MONITORINGS - get_object_list_monitorings : {}".format(str(e)))
@@ -238,39 +240,3 @@ def get_objet_with_permission_boolean(
         objects_out.append(object_out)
 
     return objects_out
-
-
-# from gn_module_monitoring.monitoring.definitions import MonitoringPermissions_dict
-# from gn_module_monitoring import MODULE_CODE
-# def set_permission_global_session(module_code=None,object_type=None):
-#     # requested_module_code = values.get("module_code") or MODULE_CODE
-#     module_code =  module_code or MODULE_CODE
-#     current_module = (
-#         TModules.query.options(joinedload(TModules.objects))
-#         .filter_by(module_code=module_code)
-#         .first_or_404(f"No module with code {module_code}")
-#     )
-#     g.current_module = current_module
-
-#     # recherche de l'object de permission courrant
-#     # object_type = values.get("object_type")
-#     if object_type:
-#         requested_permission_object_code = MonitoringPermissions_dict.get(object_type)
-
-#         if requested_permission_object_code is None:
-#             # error ?
-#             return
-
-#         # Test si l'object de permission existe
-#         requested_permission_object = TObjects.query.filter_by(
-#             code_object=requested_permission_object_code
-#         ).first_or_404(
-#             f"No permission object with code {requested_permission_object_code}"
-#         )
-
-#         # si l'object de permission est associé au module => il devient l'objet courant
-#         # - sinon se sera 'ALL' par defaut
-#         for module_perm_object in current_module.objects:
-#             if module_perm_object == requested_permission_object:
-#                 g.current_object = requested_permission_object
-#                 return

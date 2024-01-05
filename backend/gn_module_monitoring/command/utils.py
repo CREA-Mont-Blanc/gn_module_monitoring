@@ -4,6 +4,7 @@ from pathlib import Path
 from flask import current_app
 from sqlalchemy import and_, text
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql.expression import select
 from sqlalchemy.orm.exc import NoResultFound
 
 from geonature.utils.env import DB, BACKEND_DIR
@@ -119,13 +120,15 @@ def insert_module_available_permissions(module_code, perm_object_code, session):
         print(f"L'object {perm_object_code} n'est pas traité")
 
     try:
-        module = session.query(TModules).filter_by(module_code=module_code).one()
+        module = session.scalars(select(TModules).where(TModules.module_code == module_code)).one()
     except NoResultFound:
         print(f"Le module {module_code} n'est pas présent")
         return
 
     try:
-        perm_object = session.query(PermObject).filter_by(code_object=perm_object_code).one()
+        perm_object = session.execute(
+            select(PermObject).where(PermObject.code_object == perm_object_code)
+        ).scalar_one_or_none()
     except NoResultFound:
         print(f"L'object de permission {perm_object_code} n'est pas présent")
         return
@@ -143,13 +146,16 @@ def insert_module_available_permissions(module_code, perm_object_code, session):
     # Création d'une permission disponible pour chaque action
     object_actions = PERMISSION_LABEL.get(perm_object_code)["actions"]
     for action in object_actions:
-        permaction = session.query(PermAction).filter_by(code_action=action).one()
+        permaction = session.execute(
+            select(PermAction).where(PermAction.code_action == action)
+        ).scalar_one()
         try:
-            perm = (
-                session.query(PermissionAvailable)
-                .filter_by(module=module, object=perm_object, action=permaction)
-                .one()
-            )
+            perm = session.execute(
+                select(PermissionAvailable)
+                .where(PermissionAvailable.module == module)
+                .where(PermissionAvailable.object == perm_object)
+                .where(PermissionAvailable.action == permaction)
+            ).scalar_one()
         except NoResultFound:
             perm = PermissionAvailable(
                 module=module,
@@ -214,11 +220,11 @@ def add_nomenclature(module_code):
     for data in nomenclature.get("types", []):
         nomenclature_type = None
         try:
-            nomenclature_type = (
-                DB.session.query(BibNomenclaturesTypes)
-                .filter(data.get("mnemonique") == BibNomenclaturesTypes.mnemonique)
-                .one()
-            )
+            nomenclature_type = DB.session.execute(
+                select(BibNomenclaturesTypes).where(
+                    data.get("mnemonique") == BibNomenclaturesTypes.mnemonique
+                )
+            ).scalar_one()
 
         except Exception:
             pass
@@ -239,19 +245,18 @@ def add_nomenclature(module_code):
     for data in nomenclature["nomenclatures"]:
         nomenclature = None
         try:
-            nomenclature = (
-                DB.session.query(TNomenclatures)
+            nomenclature = DB.session.execute(
+                select(TNomenclatures)
                 .join(
                     BibNomenclaturesTypes, BibNomenclaturesTypes.id_type == TNomenclatures.id_type
                 )
-                .filter(
+                .where(
                     and_(
                         data.get("cd_nomenclature") == TNomenclatures.cd_nomenclature,
                         data.get("type") == BibNomenclaturesTypes.mnemonique,
                     )
                 )
-                .one()
-            )
+            ).scalar_one()
 
         except Exception as e:
             pass
@@ -266,14 +271,13 @@ def add_nomenclature(module_code):
             continue
 
         id_type = None
-
         try:
-            id_type = (
-                DB.session.query(BibNomenclaturesTypes.id_type)
-                .filter(BibNomenclaturesTypes.mnemonique == data["type"])
-                .one()
-            )[0]
-        except Exception:
+            id_type = DB.session.execute(
+                select(BibNomenclaturesTypes.id_type).where(
+                    BibNomenclaturesTypes.mnemonique == data["type"]
+                )
+            ).scalar_one()
+        except Exception as e:
             pass
 
         if not id_type:
@@ -295,6 +299,11 @@ def add_nomenclature(module_code):
         nomenclature = TNomenclatures(**data)
         DB.session.add(nomenclature)
         DB.session.commit()
+        print(
+            "nomenclature {} - {} added".format(
+                nomenclature.cd_nomenclature, nomenclature.label_default
+            )
+        )
 
 
 def installed_modules(session=None):

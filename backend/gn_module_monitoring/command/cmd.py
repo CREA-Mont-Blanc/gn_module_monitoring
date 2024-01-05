@@ -5,6 +5,7 @@ import click
 from pathlib import Path
 from flask.cli import with_appcontext
 from sqlalchemy.sql import text
+from sqlalchemy.sql.expression import select
 
 from geonature.utils.env import DB, BACKEND_DIR
 from geonature.core.gn_synthese.models import TSources
@@ -238,7 +239,9 @@ def synchronize_synthese(module_code, offset):
     Synchronise les données d'un module dans la synthese
     """
     click.secho(f"Start synchronize data for module {module_code} ...", fg="green")
-    module = TModules.query.filter_by(module_code=module_code).one()
+    module = DB.session.execute(
+        select(TModules).where(TModules.module_code == module_code)
+    ).scalar_one()
     table_name = "v_synthese_{}".format(module_code)
     import_from_table(
         "gn_monitoring",
