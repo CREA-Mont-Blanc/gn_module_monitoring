@@ -24,7 +24,7 @@ class GnMonitoringGenericFilter:
             else:
                 and_list.append(column == value)
         and_query = and_(*and_list)
-        return query.filter(and_query)
+        return query.where(and_query)
 
     @classmethod
     def sort(cls, query: Query, label: str, direction: str):
@@ -71,7 +71,7 @@ class SitesQuery(GnMonitoringGenericFilter):
         if user is None:
             user = g.current_user
         if scope == 0:
-            query = query.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringSites.id_digitiser == user.id_role,
@@ -83,7 +83,7 @@ class SitesQuery(GnMonitoringGenericFilter):
                     Models.TMonitoringSites.inventor.has(id_organisme=user.id_organisme),
                     Models.TMonitoringSites.digitiser.has(id_organisme=user.id_organisme),
                 ]
-            query = query.filter(or_(*ors))
+            query = query.where(or_(*ors))
         return query
 
 
@@ -93,7 +93,7 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
         if user is None:
             user = g.current_user
         if scope == 0:
-            query = query.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringSitesGroups.id_digitiser == user.id_role,
@@ -103,7 +103,7 @@ class SitesGroupsQuery(GnMonitoringGenericFilter):
                 ors += [
                     Models.TMonitoringSitesGroups.digitiser.has(id_organisme=user.id_organisme)
                 ]
-            query = query.filter(or_(*ors))
+            query = query.where(or_(*ors))
         return query
 
 
@@ -114,7 +114,7 @@ class VisitQuery(GnMonitoringGenericFilter):
         if user is None:
             user = g.current_user
         if scope == 0:
-            query = query.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TMonitoringVisits.id_digitiser == user.id_role,
@@ -126,7 +126,7 @@ class VisitQuery(GnMonitoringGenericFilter):
                     Models.TMonitoringVisits.observers.any(id_organisme=user.id_organisme),
                     Models.TMonitoringVisits.digitiser.has(id_organisme=user.id_organisme),
                 ]
-            query = query.filter(or_(*ors))
+            query = query.where(or_(*ors))
         return query
 
 
@@ -136,7 +136,7 @@ class ObservationsQuery(GnMonitoringGenericFilter):
         if user is None:
             user = g.current_user
         if scope == 0:
-            query = query.filter(false())
+            query = query.where(false())
         elif scope in (1, 2):
             ors = [
                 Models.TObservations.id_digitiser == user.id_role,
@@ -144,5 +144,5 @@ class ObservationsQuery(GnMonitoringGenericFilter):
             # if organism is None => do not filter on id_organism even if level = 2
             if scope == 2 and user.id_organisme is not None:
                 ors += [Models.TObservations.digitiser.has(id_organisme=user.id_organisme)]
-            query = query.filter(or_(*ors))
+            query = query.where(or_(*ors))
         return query

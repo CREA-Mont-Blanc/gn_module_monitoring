@@ -16,7 +16,7 @@ from geonature.core.gn_commons.models import TModules
 from ..monitoring.models import TMonitoringModules
 from ..config.repositories import get_config
 from ..config.utils import json_from_file, monitoring_module_config_path
-from ..modules.repositories import get_module, get_simple_module
+from ..modules.repositories import get_simple_module
 
 from .utils import (
     process_export_csv,

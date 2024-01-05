@@ -95,7 +95,7 @@ def get_sites_group_by_id(scope, id_sites_group: int, object_type: str):
 @check_cruved_scope("R", module_code=MODULE_CODE, object_code="MONITORINGS_GRP_SITES")
 def get_sites_group_geometries(object_type: str):
     object_code = "MONITORINGS_GRP_SITES"
-    query = db.select()
+    query = db.select(TMonitoringSitesGroups)
     query = TMonitoringSitesGroups.filter_by_readable(query=query, object_code=object_code)
     subquery_not_geom = (
         query.with_only_columns(
