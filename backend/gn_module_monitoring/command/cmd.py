@@ -146,15 +146,15 @@ et module_desc dans le fichier {module_config_dir_path}/module.json",
     if (module_config_dir_path / "synthese.sql").exists:
         click.secho("Execution du script synthese.sql")
         sql_script = module_config_dir_path / "synthese.sql"
+        txt = (
+            Path(sql_script)
+            .read_text()
+            .replace(":'module_code'", "'{}'".format(module_code))
+            .replace(":module_code", "{}".format(module_code))
+        )
         try:
-            DB.engine.execute(
-                text(
-                    open(sql_script, "r")
-                    .read()
-                    .replace(":'module_code'", "'{}'".format(module_code))
-                    .replace(":module_code", "{}".format(module_code))
-                ).execution_options(autocommit=True)
-            )
+            DB.session.execute(text(txt))
+            DB.session.commit()
         except Exception as e:
             print(e)
             click.secho("Erreur dans le script synthese.sql", fg="red")

@@ -2,13 +2,20 @@ import os
 from pathlib import Path
 
 from flask import current_app
-from sqlalchemy import and_, text
+from sqlalchemy import and_, text, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql.expression import select
 from sqlalchemy.orm.exc import NoResultFound
 
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
 from geonature.utils.env import DB, BACKEND_DIR
-from geonature.core.gn_permissions.models import PermObject, PermissionAvailable, PermAction
+from geonature.core.gn_permissions.models import (
+    PermObject,
+    PermissionAvailable,
+    PermAction,
+    cor_object_module,
+)
 from geonature.core.gn_commons.models import TModules
 
 from pypnnomenclature.models import TNomenclatures, BibNomenclaturesTypes
@@ -74,13 +81,10 @@ def process_export_csv(module_code=None):
         for f in files:
             if not f.endswith(".sql"):
                 continue
-
+            txt = Path(Path(root) / Path(f)).read_text()
             try:
-                DB.engine.execute(
-                    text(open(Path(root) / f, "r").read())
-                    .execution_options(autocommit=True)
-                    .bindparams(module_code=module_code)
-                )
+                DB.session.execute(text(txt).bindparams(module_code=module_code))
+                DB.session.commit()
                 print("{} - export csv file : {}".format(module_code, f))
 
             except Exception as e:
@@ -133,15 +137,13 @@ def insert_module_available_permissions(module_code, perm_object_code, session):
         print(f"L'object de permission {perm_object_code} n'est pas présent")
         return
 
-    txt_cor_object_module = f"""
-        INSERT INTO gn_permissions.cor_object_module(
-            id_module,
-            id_object
-        )
-        VALUES({module.id_module}, {perm_object.id_object})
-        ON CONFLICT DO NOTHING
-    """
-    session.execute(txt_cor_object_module)
+    stmt = (
+        pg_insert(cor_object_module)
+        .values(id_module=module.id_module, id_object=perm_object.id_object)
+        .on_conflict_do_nothing()
+    )
+    session.execute(stmt)
+    session.commit()
 
     # Création d'une permission disponible pour chaque action
     object_actions = PERMISSION_LABEL.get(perm_object_code)["actions"]
@@ -177,13 +179,14 @@ def remove_monitoring_module(module_code):
     # remove module in db
     try:
         # suppression des permissions disponibles pour ce module
-        txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
-        DB.engine.execution_options(autocommit=True).execute(txt)
+        # txt = f"DELETE FROM gn_permissions.t_permissions_available WHERE id_module = {module.id_module}"
+        stmt = delete(PermissionAvailable).where(PermissionAvailable.id_module == module.id_module)
 
-        # HACK pour le moment suppresion avec un sql direct
-        #  Car il y a un soucis de delete cascade dans les modèles sqlalchemy
-        txt = f"""DELETE FROM gn_commons.t_modules WHERE id_module ={module.id_module}"""
-        DB.engine.execution_options(autocommit=True).execute(txt)
+        DB.session.execute(stmt)
+
+        stmt = delete(TModules).where(TModules.id_module == module.id_module)
+        DB.session.execute(stmt)
+        DB.session.commit()
     except IntegrityError:
         print("Impossible de supprimer le module car il y a des données associées")
         return
