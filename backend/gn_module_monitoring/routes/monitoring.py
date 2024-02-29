@@ -112,11 +112,7 @@ def get_monitoring_object_api(scope, module_code=None, object_type="module", id=
         if not object._model.has_instance_permission(scope=scope):
             raise Forbidden(f"User {g.current_user} cannot read {object_type} {object._id}")
 
-    return (
-        monitoring_obj.get(depth=depth)
-        # .get(value=value, field_name = field_name)
-        .serialize(depth)
-    )
+    return monitoring_obj.get(depth=depth).serialize(depth)
 
 
 def create_or_update_object_api(module_code, object_type, id=None):
