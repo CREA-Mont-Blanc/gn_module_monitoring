@@ -3,30 +3,28 @@ serialiser
 """
 
 from flask import current_app, g
-
 from marshmallow import EXCLUDE
-
-from geonature.utils.env import DB
-from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 from geonature.core.gn_monitoring.models import (
     TIndividuals,
 )
 from geonature.core.gn_monitoring.schema import TMarkingEventSchema
-from gn_module_monitoring.utils.utils import to_int
+from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.utils.env import DB
+from gn_module_monitoring.monitoring.base import MonitoringObjectBase, monitoring_definitions
+from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
+from gn_module_monitoring.monitoring.schemas import (
+    MonitoringIndividualsSchema,
+    MonitoringModuleSchema,
+    MonitoringObservationsDetailsSchema,
+    MonitoringObservationsSchema,
+    MonitoringSitesGroupsSchema,
+    MonitoringSitesSchema,
+    MonitoringVisitsSchema,
+)
 from gn_module_monitoring.routes.data_utils import id_field_name_dict
 from gn_module_monitoring.utils.routes import get_objet_with_permission_boolean
-from gn_module_monitoring.monitoring.models import PermissionModel, TMonitoringModules
-from gn_module_monitoring.monitoring.base import MonitoringObjectBase, monitoring_definitions
-from gn_module_monitoring.monitoring.schemas import (
-    MonitoringModuleSchema,
-    MonitoringSitesSchema,
-    MonitoringSitesGroupsSchema,
-    MonitoringVisitsSchema,
-    MonitoringObservationsSchema,
-    MonitoringObservationsDetailsSchema,
-    MonitoringIndividualsSchema,
-)
+from gn_module_monitoring.utils.utils import to_int
 
 MonitoringSerializer_dict = {
     "module": MonitoringModuleSchema,  # besoin pour retrouver le module depuis module_code à voir si on peux faire sans
@@ -221,37 +219,10 @@ class MonitoringObjectSerializer(MonitoringObjectBase):
         display_properties = []
         # Liste des propriétés spécifique de l'objet qui doivent être récupérées
         display_specific = []
-        if is_child:
-            module_config = self.config()
-            # Si l'objet est un enfant on ne serialize que les attributs utilisés dans les data list
-            display_properties = module_config[self._object_type]["display_list"]
-            # liste des propriétés "génériques"
-            display_generic = [
-                k
-                for k in display_properties
-                if k in module_config[self._object_type]["generic"].keys()
-            ]
-            # liste des propriétés "spécifique"
-            display_specific = [
-                k
-                for k in display_properties
-                if k in module_config[self._object_type]["specific"].keys()
-            ]
-            if hasattr(self._model, "data"):
-                display_generic.append("data")
-            display_generic.append(self.config_param("id_field_name"))
 
-            # Sérialisation de l'objet
-            dump_object = MonitoringSerializer_dict[self._object_type](
-                unknown=EXCLUDE, only=display_generic
-            ).dump(self._model)
-
-        else:
-            # Si l'objet n'est pas un enfant on récupére toutes les informations
-            # Pour pourvoir afficher le détails
-            dump_object = MonitoringSerializer_dict[self._object_type](unknown=EXCLUDE).dump(
-                self._model
-            )
+        dump_object = MonitoringSerializer_dict[self._object_type](unknown=EXCLUDE).dump(
+            self._model
+        )
         properties = dump_object
 
         # Extraction des proprités spécifiques au même niveau que les génériques
