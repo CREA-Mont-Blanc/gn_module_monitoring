@@ -54,7 +54,6 @@ class MonitoringObject(MonitoringObjectSerializer):
                     ],
                 )
                 self.cruved = cruved_item_dict[0]["cruved"]
-
             return self
 
         except Exception as e:
