@@ -142,6 +142,7 @@ class MonitoringSitesSchema(MA.SQLAlchemyAutoSchema):
     id_sites_group = fields.Method("get_id_sites_group")
     id_inventor = fields.Method("get_id_inventor")
     inventor = fields.Method("get_inventor_name")
+    observers = MA.Pluck(ObserverSchema, "id_role", many=True)
     medias = MA.Nested(MediaSchema, many=True)
     nb_visits = fields.Integer(dump_only=True)
     last_visit = fields.DateTime(dump_only=True)
