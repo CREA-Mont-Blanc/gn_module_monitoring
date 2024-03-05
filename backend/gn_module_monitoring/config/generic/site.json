@@ -12,6 +12,7 @@
     "base_site_code",
     "base_site_description",
     "id_inventor",
+    "observers",
     "first_use_date",
     "last_visit",
     "nb_visits",
@@ -25,6 +26,7 @@
     "last_visit",
     "id_inventor",
     "nb_visits",
+    "observers",
     "types_site"
   ],
   "sorts": [
@@ -60,6 +62,18 @@
       "code_list": "CODE_OBSERVERS_LIST",
       "required": true,
       "multi_select": false
+    },
+    "observers": {
+      "type_widget": "datalist",
+      "attribut_label": "Observateurs",
+      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "application": "GeoNature",
+      "keyValue": "id_role",
+      "keyLabel": "nom_complet",
+      "type_util": "user",
+      "multiple": true,
+      "hidden": false,
+      "required": true
     },
     "id_digitiser": {
       "type_widget": "text",
