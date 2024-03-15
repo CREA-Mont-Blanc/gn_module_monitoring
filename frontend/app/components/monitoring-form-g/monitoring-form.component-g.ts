@@ -98,7 +98,7 @@ export class MonitoringFormComponentG implements OnInit {
     private _formService: FormService,
     private _router: Router,
     private _geojsonService: GeoJSONService
-  ) { }
+  ) {}
 
   ngOnInit() {
     if (!this.objFormStatic) {
@@ -196,12 +196,12 @@ export class MonitoringFormComponentG implements OnInit {
 
           this.obj.config
             ? (this.objFormsDefinition[key] = this._dynformService
-              .formDefinitionsdictToArray(this.obj[configType], this.meta)
-              .filter((formDef) => formDef.type_widget)
-              .sort((a, b) => {
-                // medias à la fin
-                return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
-              }))
+                .formDefinitionsdictToArray(this.obj[configType], this.meta)
+                .filter((formDef) => formDef.type_widget)
+                .sort((a, b) => {
+                  // medias à la fin
+                  return a.attribut_name === 'medias' ? +1 : b.attribut_name === 'medias' ? -1 : 0;
+                }))
             : null;
         });
 

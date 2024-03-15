@@ -129,8 +129,8 @@ export class MonitoringSitesComponent extends MonitoringGeomComponent implements
             tap((data) => {
               data.sitesGroup.is_geom_from_child
                 ? this._geojsonService.getSitesGroupsChildGeometries(this.onEachFeatureSite(), {
-                  id_sites_group: data.sitesGroup.id_sites_group,
-                })
+                    id_sites_group: data.sitesGroup.id_sites_group,
+                  })
                 : this._geojsonService.setGeomSiteGroupFromExistingObject(data.sitesGroup.geometry);
             }),
             mergeMap((data) => {

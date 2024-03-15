@@ -28,7 +28,7 @@ export class ApiService<T = IObject> implements IService<T> {
   constructor(
     protected _cacheService: CacheService,
     protected _configJsonService: ConfigJsonService
-  ) { }
+  ) {}
 
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;

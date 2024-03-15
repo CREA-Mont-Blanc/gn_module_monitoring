@@ -86,7 +86,7 @@ export class MonitoringFormComponent implements OnInit {
     private _formService: FormService,
     private _router: Router,
     private _geojsonService: GeoJSONService
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.initPermission();
@@ -351,6 +351,7 @@ export class MonitoringFormComponent implements OnInit {
 
   /** TODO améliorer site etc.. */
   onSubmit(isAddChildrend = false) {
+    console.log('coucouc');
     isAddChildrend
       ? (this.bSaveAndAddChildrenSpinner = this.bAddChildren = true)
       : (this.bSaveSpinner = true);
@@ -368,7 +369,9 @@ export class MonitoringFormComponent implements OnInit {
       ? this.obj.patch(objFormValueGroup, this.dataComplement)
       : this.obj.post(objFormValueGroup, this.dataComplement);
     const actionLabel = this.obj.id ? 'Modification' : 'Création';
+    console.log('post site');
     action.subscribe((objData) => {
+      console.log('site has been posted');
       this._commonService.regularToaster('success', this.msgToaster(actionLabel));
       this.bSaveSpinner = this.bSaveAndAddChildrenSpinner = false;
       this.objChanged.emit(this.obj);
@@ -700,6 +703,7 @@ export class MonitoringFormComponent implements OnInit {
   }
 
   notAllowedMessage() {
+    console.log('coucocoucocuou');
     this._commonService.translateToaster(
       'warning',
       "Vous n'avez pas les permissions nécessaires pour éditer l'objet"

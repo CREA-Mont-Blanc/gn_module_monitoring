@@ -18,7 +18,7 @@ export class CacheService {
   constructor(
     private _http: HttpClient,
     private _config: ConfigService
-  ) { }
+  ) {}
 
   /** http request */
 
@@ -41,13 +41,13 @@ export class CacheService {
 
     const url_params = Object.keys(queryParams).length
       ? '?' +
-      Object.keys(queryParams)
-        .map((key) =>
-          Array.isArray(queryParams[key])
-            ? queryParams[key].map((val) => `${key}=${val}`).join('&')
-            : `${key}=${queryParams[key]}`
-        )
-        .join('&')
+        Object.keys(queryParams)
+          .map((key) =>
+            Array.isArray(queryParams[key])
+              ? queryParams[key].map((val) => `${key}=${val}`).join('&')
+              : `${key}=${queryParams[key]}`
+          )
+          .join('&')
       : '';
     let url: string;
     if (urlRelative.includes('menu_from_code')) {
