@@ -58,14 +58,12 @@
       "attribut_label": "Description"
     },
     "observers": {
-      "type_widget": "datalist",
+      "type_widget": "observers",
       "attribut_label": "Observateurs",
-      "api": "users/menu/__MODULE.ID_LIST_OBSERVER",
+      "code_list": "CODE_OBSERVERS_LIST",
       "application": "GeoNature",
-      "keyValue": "id_role",
-      "keyLabel": "nom_complet",
       "type_util": "user",
-      "multiple": true,
+      "multi_select": true,
       "hidden": false,
       "required": true
     },
