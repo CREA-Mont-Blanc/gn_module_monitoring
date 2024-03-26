@@ -2,10 +2,6 @@ from typing import Tuple
 
 from flask import Response, g
 from flask.json import jsonify
-from geonature.core.gn_monitoring.models import BibTypeSite
-from geonature.core.gn_permissions.models import PermissionAvailable, PermObject
-from geonature.utils.env import DB
-from geonature.utils.errors import GeoNatureError
 from marshmallow import Schema
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
@@ -15,6 +11,10 @@ from sqlalchemy.orm import aliased, load_only
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
+from geonature.core.gn_monitoring.models import BibTypeSite
+from geonature.core.gn_permissions.models import PermissionAvailable, PermObject
+from geonature.utils.env import DB
+from geonature.utils.errors import GeoNatureError
 from gn_module_monitoring.monitoring.models import (
     TBaseSites,
     TModules,
@@ -155,6 +155,28 @@ def query_all_types_site_from_module_id(id_module: int = None):
     return DB.session.scalars(query).unique().all()
 
 
+def filter_according_to_column_type_for_site(query, params):
+    if "types_site" in params:
+        params_types_site = params.pop("types_site")
+        query = (
+            query.join(TMonitoringSites.types_site)
+            .join(BibTypeSite.nomenclature)
+            .where(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
+        )
+    elif "id_inventor" in params:
+        params_inventor = params.pop("id_inventor")
+        query = query.join(
+            User,
+            User.id_role == TMonitoringSites.id_inventor,
+        ).where(User.nom_complet.ilike(f"%{params_inventor}%"))
+    if len(params) != 0:
+        query = filter_params(TMonitoringSites, query=query, params=params)
+
+    # TODO: filter by observers
+
+    return query
+
+
 def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
     if sort_label == "types_site":
         query = query.outerjoin(TMonitoringSites.types_site).join(BibTypeSite.nomenclature)
@@ -170,6 +192,9 @@ def sort_according_to_column_type_for_site(query, sort_label, sort_dir):
             query = query.order_by(User.nom_complet.desc())
     else:
         query = sort(TMonitoringSites, query=query, sort=sort_label, sort_dir=sort_dir)
+
+    # TODO: filter by observers
+
     return query
 
 

@@ -28,7 +28,7 @@ export class ApiService<T = IObject> implements IService<T> {
   constructor(
     protected _cacheService: CacheService,
     protected _configJsonService: ConfigJsonService
-  ) {}
+  ) { }
 
   init(endPoint: endPoints, objectObjs: IobjObs<T>) {
     this.endPoint = endPoint;
@@ -251,17 +251,6 @@ export class SitesService extends ApiGeomService<ISite> {
         }
       }
       rowSitesTable.push({ ...rest_of_site, [varToFormat]: listFieldToUse });
-    }
-    return rowSitesTable;
-  }
-
-  formatLabelObservers(sites: ISiteField[]) {
-    const rowSitesTable: ISiteField[] = [];
-    for (const site of sites) {
-      if (site['id_inventor']) {
-        site['id_inventor'] = site['inventor'];
-      }
-      rowSitesTable.push(site);
     }
     return rowSitesTable;
   }
