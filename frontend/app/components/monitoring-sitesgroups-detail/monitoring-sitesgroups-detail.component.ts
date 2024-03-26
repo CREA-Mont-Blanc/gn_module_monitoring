@@ -231,8 +231,7 @@ export class MonitoringSitesgroupsDetailComponent
       .subscribe((data: IPaginated<ISite>) => {
         let siteList = this._siteService.formatLabelTypesSite(data.items);
         this.rows = siteList;
-        const siteListResolvedProp = this._siteService.formatLabelObservers(siteList);
-        this.siteResolvedProperties = siteListResolvedProp;
+        this.siteResolvedProperties = siteList;
         this.dataTableObj.site.rows = this.rows;
         this.dataTableObj.site.page.count = data.count;
         this.dataTableObj.site.page.limit = data.limit;
@@ -333,9 +332,8 @@ export class MonitoringSitesgroupsDetailComponent
       objTemp[objType].columns = data[dataType].objConfig.dataTable.colNameObj;
       let siteList = this._siteService.formatLabelTypesSite(data[dataType].items);
       this.rows = siteList;
-      const siteListResolvedProp = this._siteService.formatLabelObservers(siteList);
-      objTemp[objType].rows = siteListResolvedProp;
-      this.siteResolvedProperties = siteListResolvedProp;
+      objTemp[objType].rows = siteList;
+      this.siteResolvedProperties = siteList;
 
       objTemp[objType].page = {
         count: data[dataType].count,
