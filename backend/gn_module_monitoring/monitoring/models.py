@@ -244,7 +244,13 @@ class TMonitoringSites(TBaseSites, PermissionModel, SitesQuery):
         DB.ForeignKey("gn_monitoring.t_base_sites.id_base_site"), nullable=False, primary_key=True
     )
 
-    site_group = DB.relationship("TMonitoringSitesGroups", back_populates="sites")
+    id_sites_group = DB.Column(
+        DB.ForeignKey(
+            "gn_monitoring.t_sites_groups.id_sites_group",
+            # ondelete='SET NULL'
+        ),
+        nullable=False,
+    )
 
     data = DB.Column(JSONB)
     observers = DB.relationship(User, lazy="joined", secondary=cor_site_observer)
@@ -349,11 +355,11 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
     )
 
     sites = DB.relationship(
-        "TMonitoringSites",
-        uselist=True, 
+        TMonitoringSites,
+        uselist=True,  # pourquoi pas par defaut ?
+        primaryjoin=(TMonitoringSites.id_sites_group == id_sites_group),
+        foreign_keys=[TMonitoringSites.id_sites_group],
         lazy="select",
-        back_populates="site_group"
-        cascade="all, delete"
     )
     modules = DB.relationship(
         "TMonitoringModules",
@@ -361,8 +367,6 @@ class TMonitoringSitesGroups(DB.Model, PermissionModel, SitesGroupsQuery):
         uselist=True,
         back_populates="sites_groups",
     )
-
-    
 
     nb_sites = column_property(
         select(func.count(TMonitoringSites.id_sites_group))
