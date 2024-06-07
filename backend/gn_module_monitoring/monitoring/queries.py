@@ -17,6 +17,7 @@ from geonature.utils.env import db
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.core.gn_commons.models import TModules
 from pypnnomenclature.models import TNomenclatures
+from geonature.core.gn_monitoring.models import BibTypeSite
 import gn_module_monitoring.monitoring.models as Models
 
 
@@ -136,7 +137,7 @@ class SitesQuery(GnMonitoringGenericFilter):
             if not isinstance(value, list):
                 value = [value]
             query = query.filter(
-                cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value))
+                cls.types_site.any(BibTypeSite.id_nomenclature_type_site.in_(value))
             )
 
         query = super().filter_by_params(query, params)
@@ -156,9 +157,7 @@ class SitesQuery(GnMonitoringGenericFilter):
         # Get specific
         specific_config_models = (
             db.session.scalars(
-                select(Models.BibTypeSite).where(
-                    Models.BibTypeSite.id_nomenclature_type_site.in_(id_types_site)
-                )
+                select(BibTypeSite).where(BibTypeSite.id_nomenclature_type_site.in_(id_types_site))
             )
             .unique()
             .all()
