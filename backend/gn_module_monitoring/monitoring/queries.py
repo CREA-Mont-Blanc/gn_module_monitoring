@@ -3,8 +3,6 @@ from copy import copy
 
 from apptax.taxonomie.models import Taxref
 from flask import g
-from geonature.core.gn_permissions.tools import get_scopes_by_action
-from geonature.utils.env import db
 from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
 from ref_geo.models import LAreas
@@ -15,6 +13,8 @@ from sqlalchemy.types import DateTime
 from werkzeug.datastructures import MultiDict
 
 import gn_module_monitoring.monitoring.models as Models
+from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.utils.env import db
 
 
 class GnMonitoringGenericFilter:
