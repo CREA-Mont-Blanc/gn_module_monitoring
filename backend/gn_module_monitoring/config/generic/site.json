@@ -6,11 +6,7 @@
   "genre": "M",
   "geom_field_name": "geom",
   "uuid_field_name": "uuid_base_site",
-  "geometry_type": [
-    "Point",
-    "LineString",
-    "Polygon"
-  ],
+  "geometry_type": ["Point", "LineString", "Polygon"],
   "display_properties": [
     "base_site_name",
     "base_site_code",
@@ -105,11 +101,11 @@
       "schema_dot_table": "gn_monitoring.t_base_sites"
     },
     "altitude_min": {
-      "type_widget": "integer",
+      "type_widget": "number",
       "attribut_label": "Altitude (min)"
     },
     "altitude_max": {
-      "type_widget": "integer",
+      "type_widget": "number",
       "attribut_label": "Altitude (max)"
     },
     "types_site": {
