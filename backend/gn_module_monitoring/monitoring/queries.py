@@ -1,24 +1,19 @@
-from flask import g
-
 from copy import copy
 
-from sqlalchemy import Unicode, and_, Unicode, func, or_, false, true, select
-from sqlalchemy.orm import class_mapper
-from sqlalchemy.types import DateTime
-from sqlalchemy.sql.expression import Select
-from werkzeug.datastructures import MultiDict
-from sqlalchemy.orm import aliased
-
-from pypnusershub.db.models import User
 from apptax.taxonomie.models import Taxref
-
-from geonature.utils.env import db
-
-from geonature.core.gn_permissions.tools import get_scopes_by_action
-from geonature.core.gn_commons.models import TModules
+from flask import g
 from pypnnomenclature.models import TNomenclatures
-from geonature.core.gn_monitoring.models import BibTypeSite
+from pypnusershub.db.models import User
+from sqlalchemy import Unicode, and_, false, func, or_, select, true
+from sqlalchemy.orm import aliased, class_mapper
+from sqlalchemy.sql.expression import Select
+from sqlalchemy.types import DateTime
+from werkzeug.datastructures import MultiDict
+
 import gn_module_monitoring.monitoring.models as Models
+from geonature.core.gn_monitoring.models import BibTypeSite
+from geonature.core.gn_permissions.tools import get_scopes_by_action
+from geonature.utils.env import db
 
 
 class GnMonitoringGenericFilter:
@@ -127,7 +122,7 @@ class SitesQuery(GnMonitoringGenericFilter):
             params.pop("modules")
         if "types_site_label" in params:
             value = params["types_site_label"]
-            join_types_site = aliased(Models.BibTypeSite)
+            join_types_site = aliased(BibTypeSite)
             join_nomenclature_type_site = aliased(TNomenclatures)
             query = query.join(join_types_site, cls.types_site)
             query = query.join(join_nomenclature_type_site, join_types_site.nomenclature)
