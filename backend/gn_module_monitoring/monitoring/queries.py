@@ -13,6 +13,7 @@ from sqlalchemy.types import DateTime
 from werkzeug.datastructures import MultiDict
 
 import gn_module_monitoring.monitoring.models as Models
+from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 from geonature.utils.env import db
 
@@ -127,7 +128,7 @@ class SitesQuery(GnMonitoringGenericFilter):
                 value = [value]
             if value[0].isdigit():
                 query = query.filter(
-                    cls.types_site.any(Models.BibTypeSite.id_nomenclature_type_site.in_(value))
+                    cls.types_site.any(BibTypeSite.id_nomenclature_type_site.in_(value))
                 )
             else:
                 # HACK gestionnaire des sites
@@ -135,7 +136,7 @@ class SitesQuery(GnMonitoringGenericFilter):
                 params["types_site_label"] = value[0]
         if "types_site_label" in params:
             value = params["types_site_label"]
-            join_types_site = aliased(Models.BibTypeSite)
+            join_types_site = aliased(BibTypeSite)
             join_nomenclature_type_site = aliased(TNomenclatures)
             query = query.join(join_types_site, cls.types_site)
             query = query.join(join_nomenclature_type_site, join_types_site.nomenclature)
