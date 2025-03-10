@@ -208,7 +208,7 @@ export class MonitoringObjectService {
                 if (elem.multi_select === true) {
                   observers.push(user);
                 } else {
-                  observers = [user];
+                  observers = user;
                   return;
                 }
               }
@@ -252,9 +252,11 @@ export class MonitoringObjectService {
         break;
       }
       case 'observers': {
-        x = x.map((user) => user.id_role);
         if (elem.multi_select === false) {
-          x = x[0];
+          x = x.id_role;
+        } else {
+
+          x = x.map((user) => user.id_role);
         }
         break;
       }
