@@ -120,6 +120,19 @@ class SitesQuery(GnMonitoringGenericFilter):
         if "modules" in params:
             query = query.filter(cls.modules.any(id_module=params["modules"]))
             params.pop("modules")
+        
+        if "types_site" in params:
+            value = params["types_site"]
+            if not isinstance(value, list):
+                value = [value]
+            if value[0].isdigit():
+                query = query.filter(
+                    cls.types_site.any(BibTypeSite.id_nomenclature_type_site.in_(value))
+                )
+            else:
+                # HACK gestionnaire des sites
+                # Quand filtre sur type de site envoie une chaine de caractère
+                params["types_site_label"] = value[0]
         if "types_site_label" in params:
             value = params["types_site_label"]
             join_types_site = aliased(BibTypeSite)
@@ -127,13 +140,6 @@ class SitesQuery(GnMonitoringGenericFilter):
             query = query.join(join_types_site, cls.types_site)
             query = query.join(join_nomenclature_type_site, join_types_site.nomenclature)
             query = query.filter(join_nomenclature_type_site.label_default.ilike(f"%{value}%"))
-        if "types_site" in params:
-            value = params["types_site"]
-            if not isinstance(value, list):
-                value = [value]
-            query = query.filter(
-                cls.types_site.any(BibTypeSite.id_nomenclature_type_site.in_(value))
-            )
 
         query = super().filter_by_params(query, params)
         return query
