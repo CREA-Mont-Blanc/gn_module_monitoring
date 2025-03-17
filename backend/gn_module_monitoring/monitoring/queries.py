@@ -120,7 +120,16 @@ class SitesQuery(GnMonitoringGenericFilter):
         if "modules" in params:
             query = query.filter(cls.modules.any(id_module=params["modules"]))
             params.pop("modules")
-        
+        if "observers" in params:
+            value = params["observers"]
+            if value.isdigit():
+                query = query.filter(
+                    cls.observers.any(id_role=value)
+                )
+            else:
+                join_observers = aliased(User)
+                query = query.join(join_observers, cls.observers)
+                query = query.filter(join_observers.nom_complet.ilike(f"%{value}%"))
         if "types_site" in params:
             value = params["types_site"]
             if not isinstance(value, list):
