@@ -7,7 +7,7 @@ from pypnnomenclature.models import TNomenclatures
 from pypnusershub.db.models import User
 from sqlalchemy import and_, cast, func, select, text
 from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.orm import aliased, load_only
+from sqlalchemy.orm import load_only
 from sqlalchemy.sql.expression import Select
 from werkzeug.datastructures import MultiDict
 
@@ -156,19 +156,6 @@ def query_all_types_site_from_module_id(id_module: int = None):
 
 
 def filter_according_to_column_type_for_site(query, params):
-    if "types_site" in params:
-        params_types_site = params.pop("types_site")
-        query = (
-            query.join(TMonitoringSites.types_site)
-            .join(BibTypeSite.nomenclature)
-            .where(TNomenclatures.label_fr.ilike(f"%{params_types_site}%"))
-        )
-    elif "id_inventor" in params:
-        params_inventor = params.pop("id_inventor")
-        query = query.join(
-            User,
-            User.id_role == TMonitoringSites.id_inventor,
-        ).where(User.nom_complet.ilike(f"%{params_inventor}%"))
     if len(params) != 0:
         query = filter_params(TMonitoringSites, query=query, params=params)
 
