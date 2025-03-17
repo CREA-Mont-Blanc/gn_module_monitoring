@@ -2,18 +2,17 @@ import json
 
 from flask import g, request
 from flask.json import jsonify
+from pypnnomenclature.models import TNomenclatures
+from sqlalchemy import and_, select
+from sqlalchemy.orm import Load
+from werkzeug.datastructures import MultiDict
+from werkzeug.exceptions import Forbidden
+
 from geonature.core.gn_commons.schemas import ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
 from geonature.utils.env import db
-from pypnnomenclature.models import TNomenclatures
-from sqlalchemy import and_, select
-from sqlalchemy.orm import Load, joinedload
-from sqlalchemy.sql import func
-from werkzeug.datastructures import MultiDict
-from werkzeug.exceptions import Forbidden
-
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
@@ -30,6 +29,7 @@ from gn_module_monitoring.routes.monitoring import (
     get_serialized_object,
 )
 from gn_module_monitoring.utils.routes import (
+    filter_according_to_column_type_for_site,
     filter_params,
     geojson_query,
     get_limit_page,
