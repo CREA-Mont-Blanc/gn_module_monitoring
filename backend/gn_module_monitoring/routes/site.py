@@ -1,22 +1,19 @@
 import json
 
-from flask import request, g
+from flask import g, request
 from flask.json import jsonify
-
+from pypnnomenclature.models import TNomenclatures
 from sqlalchemy import and_, select
 from sqlalchemy.orm import Load, joinedload
 from sqlalchemy.sql import func
 from werkzeug.datastructures import MultiDict
 from werkzeug.exceptions import Forbidden
 
-from geonature.utils.env import db
 from geonature.core.gn_commons.schemas import ModuleSchema
 from geonature.core.gn_monitoring.models import BibTypeSite
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.decorators import check_cruved_scope
-
-from pypnnomenclature.models import TNomenclatures
-
+from geonature.utils.env import db
 from gn_module_monitoring import MODULE_CODE
 from gn_module_monitoring.blueprint import blueprint
 from gn_module_monitoring.config.repositories import get_config
@@ -25,23 +22,23 @@ from gn_module_monitoring.monitoring.models import (
     TMonitoringSites,
 )
 from gn_module_monitoring.monitoring.schemas import BibTypeSiteSchema, MonitoringSitesSchema
+from gn_module_monitoring.routes.modules import get_modules
 from gn_module_monitoring.routes.monitoring import (
     create_or_update_object_api,
     get_serialized_object,
 )
-from gn_module_monitoring.routes.modules import get_modules
 from gn_module_monitoring.utils.routes import (
+    filter_according_to_column_type_for_site,
     filter_params,
     geojson_query,
     get_limit_page,
+    get_objet_with_permission_boolean,
     get_sort,
     paginate,
     paginate_scope,
-    sort,
     query_all_types_site_from_site_id,
-    filter_according_to_column_type_for_site,
+    sort,
     sort_according_to_column_type_for_site,
-    get_objet_with_permission_boolean,
 )
 
 
@@ -161,7 +158,7 @@ def get_all_site_geometries(object_type):
     object_code = "MONITORINGS_SITES"
     # params = request.args.to_dict(flat=True)
     params = dict(**request.args)
-    types_site = []
+    types_site = None
     if "types_site" in params:
         types_site = request.args.getlist("types_site")
         if not types_site[0].isdigit():
