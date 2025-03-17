@@ -121,7 +121,7 @@ class SitesQuery(GnMonitoringGenericFilter):
         if "modules" in params:
             query = query.filter(cls.modules.any(id_module=params["modules"]))
             params.pop("modules")
-
+        
         if "types_site" in params:
             value = params["types_site"]
             if not isinstance(value, list):
